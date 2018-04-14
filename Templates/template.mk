@@ -10,7 +10,7 @@ SPEED = 4000
 debug:
 	gnome-terminal --title "CGDB" -x \
 	cgdb -d \
-	arm-none-eabi-gdb -ex "target remote :2331" $$(BUILD_DIR)/$$(TARGET).elf
+	arm-none-eabi-gdb $$(BUILD_DIR)/$$(TARGET).elf
 
 .PHONY: jlinkgdbserver
 jlinkgdbserver:

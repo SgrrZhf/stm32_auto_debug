@@ -44,7 +44,7 @@ def update_jlink_commandfile(commandfile_path, target_name):
         return commandfile
 
 
-def get_makefile(makefile_path):
+def handle_makefile(makefile_path):
     """ 从旧makefile中提取信息(Target),以及将makefile中的内容以行为划分放入列表中 """
     assert isinstance(makefile_path, str) is True
     with open(makefile_path) as f:
@@ -52,6 +52,27 @@ def get_makefile(makefile_path):
         p = makefile.index("# target")
         target = makefile[p + 2]
         target = target[target.find("=") + 2:]
+
+        """ 删除垃圾cubemx生成的重复C_SOURCES内容 """
+        """ 修复垃圾cubemx生成一个开头加了'/'的C_SOURCES内容 """
+        c_sources_start = makefile.index("C_SOURCES =  \\") + 1
+        c_sources_end = makefile.index("# ASM sources")
+        temp = sorted(
+            set(makefile[c_sources_start:c_sources_end]))
+        temp.reverse()
+        del(makefile[c_sources_start:c_sources_end])
+        p = c_sources_start
+        for i in temp:
+            if len(i) == 0:
+                continue
+            if i[0] == '/':
+                i = i[1:]
+            if i[-1] != '\\':
+               i += '\\' 
+            makefile.insert(p, i)
+            p += 1
+        makefile.insert(p,'')
+
         return (makefile, {"target": target})
 
 
@@ -84,7 +105,7 @@ def main():
     mk_autoload = update_autoload_script(
         app_folder_path + TEMPLATES_PATH,
         results.device_name)
-    data = get_makefile(target_folder_path + "/Makefile")
+    data = handle_makefile(target_folder_path + "/Makefile")
 
     """ 重写commandfile.jlink """
     commandfile = update_jlink_commandfile(

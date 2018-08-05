@@ -1,0 +1,8 @@
+si 1
+speed 4000
+r
+h
+loadfile build/board_test.hex
+r
+exit
+

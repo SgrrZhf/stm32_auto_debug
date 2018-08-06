@@ -53,8 +53,7 @@ def handle_makefile(makefile_path):
         target = makefile[p + 2]
         target = target[target.find("=") + 2:]
 
-        """ 删除垃圾cubemx生成的重复C_SOURCES内容 """
-        """ 修复垃圾cubemx生成一个开头加了'/'的C_SOURCES内容 """
+        """ 整理一下C_SOURCES文件顺序 """
         c_sources_start = makefile.index("C_SOURCES =  \\") + 1
         c_sources_end = makefile.index("# ASM sources")
         temp = sorted(
@@ -65,23 +64,21 @@ def handle_makefile(makefile_path):
         for i in temp:
             if len(i) == 0:
                 continue
-            if i[0] == '/':
-                i = i[1:]
             if i[-1] != '\\':
-               i += '\\' 
+                i += '\\'
             makefile.insert(p, i)
             p += 1
-        makefile.insert(p,'')
+        makefile.insert(p, '')
 
         return (makefile, {"target": target})
 
 
-def update_makefile(makefile_list, autoload_list, bin_path):
-    """ 往makefile中添加autoload和BINPATH内容 """
+def update_makefile(makefile_list, autoload_list, gcc_path):
+    """ 往makefile中添加autoload和GCC_PATH内容 """
     makefile_list.extend(autoload_list)
 
-    p = makefile_list.index("BINPATH = ")
-    makefile_list[p] += bin_path
+    p = makefile_list.index("ifdef GCC_PATH")
+    makefile_list.insert(p, "GCC_PATH = " + gcc_path)
     return makefile_list
 
 
@@ -119,7 +116,7 @@ def main():
         makefile = update_makefile(
             data[0],
             mk_autoload.split('\n'),
-            param['BINPATH'])
+            param['GCC_PATH'])
 
         """ 重写makefile文件 """
         new_makefile = open(target_folder_path + "/makefile", 'w')

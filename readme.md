@@ -2,6 +2,10 @@
 ## 项目说明
 为stm32cubemx生成的Makefile加入自动下载与调试功能
 
+## 适配版本
+STM32CubeMX v4.26.1
+由于这个版本修复了之前生成Makefile的种种问题，所以脚本对源文件内容做修改的内容是添加了GCC_PATH变量，以及对C_SOURCES的内容做了排序
+
 ## 实现原理
 1. 载入"Makefile"，添加相关命令，并生成新的"makefile"
 2. 从"Makefile"中获取目标文件名target，并生成commandfile.jlink脚本用于下载target.bin文件

@@ -9,6 +9,8 @@ import sys
 import os
 
 
+TEMP_PATH = "/Templates/"
+KBUILD_VERBOSE = "kbuild_verbose.mk"
 TEMPLATES_PATH = "/Templates/template.mk"
 JLINK_COMMAND_FILE_PATH = "/Templates/commandfile.jlink"
 PARAM_PATH = "/Templates/parameter.json"
@@ -16,7 +18,7 @@ YCM_EXTRA_CONF_PATH = "/Templates/.ycm_extra_conf.py"
 GDBINIT_PATH = "/Templates/.gdbinit"
 
 
-def update_autoload_script(template_file_path, device,):
+def update_autoload_script(template_file_path, device):
     """ 往自动下载的模板里填充DEVICE """
 
     """ device: target device name """
@@ -28,6 +30,16 @@ def update_autoload_script(template_file_path, device,):
         template_mk = string.Template(f.read())
         template_mk = template_mk.substitute(DEVICE=device)
         return template_mk
+
+
+def update_kbuild_verbose(path_file):
+    """ 获取kbuild_verbose内容 """
+
+    """ path_file: kbuild_verbose template file """
+    assert isinstance(path_file, str)
+
+    with open(path_file, 'r') as f:
+        return f.read()
 
 
 def update_jlink_commandfile(commandfile_path, target_name):
@@ -42,6 +54,14 @@ def update_jlink_commandfile(commandfile_path, target_name):
         commandfile = string.Template(f.read())
         commandfile = commandfile.substitute(TARGET=target_name)
         return commandfile
+
+
+def add_Q(string, key, echo):
+    index = string.find(key)
+    if index != -1:
+        string = string[:index] + "$(Q)" + string[index:]
+        string = "\t@echo %s $@\n" % (echo) + string
+    return string
 
 
 def handle_makefile(makefile_path):
@@ -70,15 +90,31 @@ def handle_makefile(makefile_path):
             p += 1
         makefile.insert(p, '')
 
+        """ 加入$(Q) """
+        i = 0
+        while i < len(makefile):
+            makefile[i] = add_Q(makefile[i], "$(CC)", "CC")
+            makefile[i] = add_Q(makefile[i], "$(AS)", "AS")
+            makefile[i] = add_Q(makefile[i], "$(SZ)", "SZ")
+            makefile[i] = add_Q(makefile[i], "$(HEX)", "CP")
+            makefile[i] = add_Q(makefile[i], "$(BIN)", "CP")
+            i += 1
+
         return (makefile, {"target": target})
 
 
-def update_makefile(makefile_list, autoload_list, gcc_path):
+def update_makefile(makefile_list, autoload_list, gcc_path, kbuild_list):
     """ 往makefile中添加autoload和GCC_PATH内容 """
     makefile_list.extend(autoload_list)
 
+    p = makefile_list.index("# target") - 1
+    for i in kbuild_list:
+        makefile_list.insert(p, i)
+        p += 1
+
     p = makefile_list.index("ifdef GCC_PATH")
     makefile_list.insert(p, "GCC_PATH = " + gcc_path)
+
     return makefile_list
 
 
@@ -102,6 +138,8 @@ def main():
     mk_autoload = update_autoload_script(
         app_folder_path + TEMPLATES_PATH,
         results.device_name)
+    mk_kbuild_verbose = update_kbuild_verbose(
+        app_folder_path + TEMP_PATH + KBUILD_VERBOSE)
     data = handle_makefile(target_folder_path + "/Makefile")
 
     """ 重写commandfile.jlink """
@@ -116,7 +154,8 @@ def main():
         makefile = update_makefile(
             data[0],
             mk_autoload.split('\n'),
-            param['GCC_PATH'])
+            param['GCC_PATH'],
+            mk_kbuild_verbose.split('\n'))
 
         """ 重写makefile文件 """
         new_makefile = open(target_folder_path + "/makefile", 'w')

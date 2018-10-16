@@ -10,12 +10,12 @@ import os
 
 
 TEMP_PATH = "/Templates/"
-KBUILD_VERBOSE = "kbuild_verbose.mk"
-TEMPLATES_PATH = "/Templates/template.mk"
-JLINK_COMMAND_FILE_PATH = "/Templates/commandfile.jlink"
-PARAM_PATH = "/Templates/parameter.json"
-YCM_EXTRA_CONF_PATH = "/Templates/.ycm_extra_conf.py"
-GDBINIT_PATH = "/Templates/.gdbinit"
+KBUILD_VERBOSE_FILE = "kbuild_verbose.mk"
+AUTO_LOAD_FILE = "auto_load.mk"
+JLINK_COMMAND_FILE = "commandfile.jlink"
+PARAM_FILE = "parameter.json"
+YCM_EXTRA_CONF_FILE = ".ycm_extra_conf.py"
+GDBINIT_FILE = ".gdbinit"
 
 
 def update_autoload_script(template_file_path, device):
@@ -136,20 +136,20 @@ def main():
         return
 
     mk_autoload = update_autoload_script(
-        app_folder_path + TEMPLATES_PATH,
+        app_folder_path + TEMP_PATH + AUTO_LOAD_FILE,
         results.device_name)
     mk_kbuild_verbose = update_kbuild_verbose(
-        app_folder_path + TEMP_PATH + KBUILD_VERBOSE)
+        app_folder_path + TEMP_PATH + KBUILD_VERBOSE_FILE)
     data = handle_makefile(target_folder_path + "/Makefile")
 
     """ 重写commandfile.jlink """
     commandfile = update_jlink_commandfile(
-        app_folder_path + JLINK_COMMAND_FILE_PATH, data[1]['target'])
+        app_folder_path + TEMP_PATH + JLINK_COMMAND_FILE, data[1]['target'])
     new_commandfile = open(target_folder_path + "/commandfile.jlink", 'w')
     new_commandfile.write(commandfile)
     new_commandfile.close()
 
-    with open(app_folder_path + PARAM_PATH, 'r') as f:
+    with open(app_folder_path + TEMP_PATH + PARAM_FILE, 'r') as f:
         param = json.load(f)
         makefile = update_makefile(
             data[0],
@@ -163,8 +163,12 @@ def main():
         new_makefile.close()
 
     """ 复制ycm与gdbinit """
-    shutil.copy(app_folder_path + YCM_EXTRA_CONF_PATH, target_folder_path)
-    shutil.copy(app_folder_path + GDBINIT_PATH, target_folder_path)
+    shutil.copy(
+        app_folder_path +
+        TEMP_PATH +
+        YCM_EXTRA_CONF_FILE,
+        target_folder_path)
+    shutil.copy(app_folder_path + TEMP_PATH + GDBINIT_FILE, target_folder_path)
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@
 
 ## 适配版本
 STM32CubeMX v4.26.1
-由于这个版本修复了之前生成Makefile的种种问题，所以脚本对源文件内容做修改的内容是添加了GCC_PATH变量，以及对C_SOURCES的内容做了排序
+由于这个版本修复了之前生成Makefile的种种问题，所以脚本对源文件内容做修改的内容是添加了GCC_PATH变量，以及对C_SOURCES的内容做了排序，简化了make的输出
 
 ## 实现原理
 1. 载入"Makefile"，添加相关命令，并生成新的"makefile"

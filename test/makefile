@@ -194,25 +194,25 @@ OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) 
-    @echo CC $@
+	@echo CC $@
 	$(Q)$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
-    @echo AS $@
+	@echo AS $@
 	$(Q)$(AS) -c $(CFLAGS) $< -o $@
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
-    @echo CC $@
+	@echo CC $@
 	$(Q)$(CC) $(OBJECTS) $(LDFLAGS) -o $@
-    @echo SZ $@
+	@echo SZ $@
 	$(Q)$(SZ) $@
 
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
-    @echo CP $@
+	@echo CP $@
 	$(Q)$(HEX) $< $@
 	
 $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
-    @echo CP $@
+	@echo CP $@
 	$(Q)$(BIN) $< $@	
 	
 $(BUILD_DIR):
